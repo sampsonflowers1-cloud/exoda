@@ -38,10 +38,18 @@ background:#125aa0;
 <div class="grid" id="grid"></div>
 
 <script>
-const names=[];
-for(let i=1;i<=30;i++){
-names.push("Προμηθευτής "+i);
+const TOTAL = 30;
+
+// names = τα ονόματα που θα φαίνονται στα κουμπιά
+let names = JSON.parse(localStorage.getItem("exoda_names") || "null");
+
+// αν δεν υπάρχουν ονόματα, φτιάχνει τα default (Προμηθευτής 1..30)
+if (!Array.isArray(names) || names.length !== TOTAL) {
+  names = [];
+  for (let i = 1; i <= TOTAL; i++) names.push("Προμηθευτής " + i);
+  localStorage.setItem("exoda_names", JSON.stringify(names));
 }
+
 
 const grid=document.getElementById("grid");
 let data=JSON.parse(localStorage.getItem("exoda")||"{}");
@@ -51,6 +59,38 @@ if(!data[name]) data[name]=[];
 
 const btn=document.createElement("button");
 btn.textContent=name;
+// Δεξί κλικ = Μετονομασία
+btn.oncontextmenu = (e) => {
+  e.preventDefault();
+
+  const newName = prompt("Νέο όνομα για: " + name, name);
+  if (!newName) return;
+
+  const clean = newName.trim();
+  if (!clean) return;
+
+  // έλεγχος να μην υπάρχει ήδη ίδιο όνομα
+  if (names.includes(clean) && clean !== name) {
+    alert("Υπάρχει ήδη αυτό το όνομα.");
+    return;
+  }
+
+  // μεταφορά ιστορικού (τα λεφτά) από παλιό όνομα σε νέο
+  if (data[name] && name !== clean) {
+    data[clean] = data[name];
+    delete data[name];
+    localStorage.setItem("exoda", JSON.stringify(data));
+  }
+
+  // αλλαγή ονόματος στη λίστα κουμπιών
+  const idx = names.indexOf(name);
+  if (idx !== -1) {
+    names[idx] = clean;
+    localStorage.setItem("exoda_names", JSON.stringify(names));
+  }
+
+  location.reload(); // ανανέωση για να φανούν τα νέα ονόματα
+};
 
 btn.onclick=()=>{
 let history = "";

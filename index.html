@@ -65,7 +65,12 @@ if(data[name].length > 0){
     history += "\nΣύνολο: " + total + "€\n\n";
 }
 
-let amount = prompt(name + "\n\n" + history + "Βάλε νέο ποσό:");
+
+
+let amount = prompt(
+"Ποσό για " + name + "\n\nΙστορικό:\n" + history + "\nΝέο ποσό:"
+);
+
 
 if(!amount) return;
 let date=new Date().toISOString().slice(0,10);

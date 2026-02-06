@@ -53,7 +53,20 @@ const btn=document.createElement("button");
 btn.textContent=name;
 
 btn.onclick=()=>{
-let amount=prompt("Ποσό για "+name);
+let history = "";
+let total = 0;
+
+if(data[name].length > 0){
+    history += "Προηγούμενα:\n";
+    data[name].forEach(item => {
+        history += item.date + " - " + item.amount + "€\n";
+        total += Number(item.amount);
+    });
+    history += "\nΣύνολο: " + total + "€\n\n";
+}
+
+let amount = prompt(name + "\n\n" + history + "Βάλε νέο ποσό:");
+
 if(!amount) return;
 let date=new Date().toISOString().slice(0,10);
 data[name].push({amount:parseFloat(amount),date:date});

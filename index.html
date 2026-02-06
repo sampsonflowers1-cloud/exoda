@@ -93,16 +93,170 @@ btn.oncontextmenu = (e) => {
   location.reload(); // ανανέωση για να φανούν τα νέα ονόματα
 };
 
-btn.onclick=()=>{
-let history = "";
-let total = 0;
+// === Popup (modal) μία φορά για όλη τη σελίδα ===
+let modal = document.getElementById("modal");
+if (!modal) {
+  modal = document.createElement("div");
+  modal.id = "modal";
+  modal.style.cssText = `
+    position:fixed; inset:0; background:rgba(0,0,0,.45);
+    display:none; align-items:center; justify-content:center; z-index:9999;
+  `;
 
-if(data[name].length > 0){
-    history += "Προηγούμενα:\n";
-    data[name].forEach(item => {
-        history += item.date + " - " + item.amount + "€\n";
-        total += Number(item.amount);
+  modal.innerHTML = `
+    <div id="modalBox" style="
+      width:min(720px,95vw); max-height:85vh; overflow:auto;
+      background:#fff; border-radius:10px; padding:14px 14px 10px 14px;
+      box-shadow:0 10px 35px rgba(0,0,0,.35); position:relative;
+      font-family:Arial;
+    ">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+        <h2 id="modalTitle" style="margin:0; font-size:18px;"></h2>
+        <button id="modalClose" style="
+          padding:8px 12px; border:none; border-radius:8px; cursor:pointer;
+          background:#ddd;
+        ">Κλείσιμο</button>
+      </div>
+
+      <div style="margin-top:10px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <label style="font-size:14px;">Νέο ποσό:</label>
+        <input id="newAmount" type="number" step="0.01" style="
+          padding:8px; border:1px solid #ccc; border-radius:8px; width:160px;
+        " />
+        <button id="addAmountBtn" style="
+          padding:8px 12px; border:none; border-radius:8px; cursor:pointer;
+          background:#1976d2; color:#fff;
+        ">Προσθήκη</button>
+        <div id="sumBox" style="margin-left:auto; font-weight:bold;"></div>
+      </div>
+
+      <div style="margin-top:10px; font-size:13px; color:#444;">
+        * Δεξί κλικ πάνω σε γραμμή (ημερομηνία–ποσό) για <b>Διαγραφή</b>.
+      </div>
+
+      <div id="rowsWrap" style="margin-top:10px;"></div>
+    </div>
+
+    <div id="ctxMenu" style="
+      position:fixed; display:none; z-index:10000;
+      background:#fff; border:1px solid #ccc; border-radius:8px;
+      box-shadow:0 8px 25px rgba(0,0,0,.25);
+      min-width:140px; overflow:hidden;
+      font-family:Arial;
+    ">
+      <div id="ctxDelete" style="padding:10px 12px; cursor:pointer;">🗑 Διαγραφή</div>
+      <div id="ctxCancel" style="padding:10px 12px; cursor:pointer; border-top:1px solid #eee;">Ακύρωση</div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  // Κλείσιμο modal
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) modal.style.display = "none";
+  });
+  document.getElementById("modalClose").onclick = () => (modal.style.display = "none");
+
+  // Κλείσιμο context menu με click οπουδήποτε
+  document.addEventListener("click", () => {
+    const cm = document.getElementById("ctxMenu");
+    cm.style.display = "none";
+  });
+}
+
+// Helpers
+function saveData() {
+  localStorage.setItem("exoda", JSON.stringify(data));
+}
+
+function renderModalRows(currentName) {
+  const rowsWrap = document.getElementById("rowsWrap");
+  rowsWrap.innerHTML = "";
+
+  const arr = data[currentName] || [];
+  let total = 0;
+
+  if (arr.length === 0) {
+    rowsWrap.innerHTML = `<div style="padding:12px; background:#f6f6f6; border-radius:8px;">Δεν υπάρχουν καταχωρήσεις.</div>`;
+  } else {
+    const table = document.createElement("div");
+    table.style.cssText = "display:flex; flex-direction:column; gap:6px;";
+
+    arr.forEach((item, idx) => {
+      total += Number(item.amount) || 0;
+
+      const row = document.createElement("div");
+      row.style.cssText = `
+        display:flex; justify-content:space-between; gap:10px;
+        padding:10px 12px; background:#f7f7f7; border-radius:8px;
+        cursor:default;
+      `;
+      row.innerHTML = `<div><b>${item.date}</b></div><div>${item.amount} €</div>`;
+
+      // Δεξί κλικ στη γραμμή -> context menu
+      row.oncontextmenu = (e) => {
+        e.preventDefault();
+
+        const cm = document.getElementById("ctxMenu");
+        const del = document.getElementById("ctxDelete");
+        const cancel = document.getElementById("ctxCancel");
+
+        cm.style.left = e.clientX + "px";
+        cm.style.top = e.clientY + "px";
+        cm.style.display = "block";
+
+        cancel.onclick = () => (cm.style.display = "none");
+
+        del.onclick = () => {
+          cm.style.display = "none";
+          const ok = confirm(`Διαγραφή της γραμμής;\n${item.date} — ${item.amount} €`);
+          if (!ok) return;
+
+          // σβήσιμο γραμμής
+          data[currentName].splice(idx, 1);
+          saveData();
+          renderModalRows(currentName);
+        };
+      };
+
+      table.appendChild(row);
     });
+
+    rowsWrap.appendChild(table);
+  }
+
+  document.getElementById("sumBox").textContent = `Σύνολο: ${total} €`;
+}
+
+function openModalFor(name) {
+  document.getElementById("modalTitle").textContent = `Ιστορικό: ${name}`;
+  document.getElementById("newAmount").value = "";
+  renderModalRows(name);
+
+  const addBtn = document.getElementById("addAmountBtn");
+  addBtn.onclick = () => {
+    const v = document.getElementById("newAmount").value;
+    if (v === "" || v === null) return;
+
+    const num = Number(v);
+    if (!isFinite(num)) return;
+
+    const date = new Date().toISOString().slice(0, 10);
+    if (!data[name]) data[name] = [];
+    data[name].push({ amount: num, date: date });
+    saveData();
+    renderModalRows(name);
+    document.getElementById("newAmount").value = "";
+  };
+
+  modal.style.display = "flex";
+}
+
+// === ΤΟ ΝΕΟ onClick: ανοίγει το modal ===
+btn.onclick = () => {
+  openModalFor(name);
+};
+
     history += "\nΣύνολο: " + total + "€\n\n";
 }
 

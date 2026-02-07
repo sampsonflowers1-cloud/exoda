@@ -234,7 +234,6 @@ function renderModalRows(currentName) {
 function openModalFor(name) {
   document.getElementById("modalTitle").textContent = `Ιστορικό: ${name}`;
   document.getElementById("newAmount").value = "";
-  renderModalRows(name);
   loadExpensesFromFirestore(name);
 
 

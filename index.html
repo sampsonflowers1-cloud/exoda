@@ -250,6 +250,8 @@ function openModalFor(name) {
     saveExpense(name, num);
 
     saveData();
+    saveExpense(name, num);
+
     renderModalRows(name);
     document.getElementById("newAmount").value = "";
   };

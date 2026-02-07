@@ -247,6 +247,8 @@ function openModalFor(name) {
     const date = new Date().toISOString().slice(0, 10);
     if (!data[name]) data[name] = [];
     data[name].push({ amount: num, date: date });
+    saveExpense(name, num);
+
     saveData();
     renderModalRows(name);
     document.getElementById("newAmount").value = "";

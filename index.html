@@ -291,6 +291,34 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+async function loadExpensesFromFirestore(supplierName) {
+  const snap = await db
+    .collection("expenses")
+    .where("supplier", "==", supplierName)
+    .orderBy("date", "asc")
+    .get();
+
+  const rows = [];
+  let total = 0;
+
+  snap.forEach(doc => {
+    const d = doc.data();
+    const amount = Number(d.amount) || 0;
+    total += amount;
+
+    // date μπορεί να είναι Firestore Timestamp ή Date
+    let dt = d.date;
+    if (dt && typeof dt.toDate === "function") dt = dt.toDate();
+    const iso = dt ? new Date(dt).toISOString().slice(0, 10) : "";
+
+    rows.push({ id: doc.id, date: iso, amount: amount });
+  });
+
+  // εδώ καλείς τη δικιά σου function που ζωγραφίζει τις γραμμές στο modal
+  // ΠΡΟΣΟΧΗ: άλλαξε τα ονόματα render/total στα δικά σου αν διαφέρουν
+  renderModalRowsFromFirestore(rows);   // <- θα την φτιάξουμε στο βήμα 3
+  setModalTotal(total);                // <- θα την φτιάξουμε στο βήμα 3
+}
 
 // Δοκιμαστική αποθήκευση
 function saveExpense(supplier, amount) {

@@ -265,19 +265,7 @@ btn.onclick = () => {
 
           
 
-let amount = prompt(
-"Ποσό για " + name + "\n\nΙστορικό:\n" + history + "\nΝέο ποσό:"
-);
 
-
-if(!amount) return;
-let date=new Date().toISOString().slice(0,10);
-data[name].push({amount:parseFloat(amount),date:date});
-localStorage.setItem("exoda",JSON.stringify(data));
-};
-
-grid.appendChild(btn);
-});
 </script>
 
 </body>

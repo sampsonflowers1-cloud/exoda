@@ -300,6 +300,28 @@ function saveExpense(supplier, amount) {
     date: new Date()
   });
 }
+  function loadExpensesFromFirebase(supplier) {
+  db.collection("expenses")
+    .where("supplier", "==", supplier)
+    .orderBy("date", "desc")
+    .get()
+    .then((snapshot) => {
+      data[supplier] = [];
+
+      snapshot.forEach((doc) => {
+        const d = doc.data();
+        const dateStr = d.date && d.date.toDate
+          ? d.date.toDate().toISOString().slice(0,10)
+          : new Date(d.date).toISOString().slice(0,10);
+
+        data[supplier].push({ amount: Number(d.amount), date: dateStr });
+      });
+
+      renderModalRows(supplier);
+    })
+    .catch((e) => console.log("❌ load error:", e));
+}
+
 </script>
 
 </body>

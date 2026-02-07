@@ -238,24 +238,18 @@ function openModalFor(name) {
 
 
   const addBtn = document.getElementById("addAmountBtn");
-  addBtn.onclick = () => {
-    const v = document.getElementById("newAmount").value;
-    if (v === "" || v === null) return;
+  addBtn.onclick = async () => {
+  const v = document.getElementById("newAmount").value;
+  if (v === "" || v === null) return;
 
-    const num = Number(v);
-    if (!isFinite(num)) return;
+  const num = Number(v);
+  if (!isFinite(num)) return;
 
-    const date = new Date().toISOString().slice(0, 10);
-    if (!data[name]) data[name] = [];
-    data[name].push({ amount: num, date: date });
-    saveExpense(name, num);
+  await saveExpenseToFirestore(name, num);
+  document.getElementById("newAmount").value = "";
+  await loadExpensesFromFirestore(name);
+};
 
-    saveData();
-    saveExpense(name, num);
-
-    renderModalRows(name);
-    document.getElementById("newAmount").value = "";
-  };
 
   modal.style.display = "flex";
 }

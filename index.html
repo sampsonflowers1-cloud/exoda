@@ -270,6 +270,33 @@ grid.appendChild(btn);
 
 
 </script>
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyDfvYYkaFFFiI7xCRuetKQHCyer9eFoB_A",
+  authDomain: "exoda-magaziou.firebaseapp.com",
+  projectId: "exoda-magaziou",
+  storageBucket: "exoda-magaziou.firebasestorage.app",
+  messagingSenderId: "127698901418",
+  appId: "1:127698901418:web:fdf96e8dbc0953570f73d3",
+  measurementId: "G-LVWZYPLY8M"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// Δοκιμαστική αποθήκευση
+function saveExpense(supplier, amount) {
+  db.collection("expenses").add({
+    supplier: supplier,
+    amount: amount,
+    date: new Date()
+  });
+}
+</script>
 
 </body>
 </html>
